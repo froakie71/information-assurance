@@ -39,7 +39,7 @@
                 </div>
             @endif
 
-            <form class="mt-8 space-y-6" action="#" method="POST">
+            <form class="mt-8 space-y-6" action="{{ route('validate.login') }}" method="POST">
                 @csrf
                 <div class="rounded-md shadow-sm -space-y-px">
                     <div>

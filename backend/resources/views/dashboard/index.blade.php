@@ -3,76 +3,79 @@
 @section('title', 'Dashboard')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {{-- {{ dd($data) }} --}}
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Tasks</dt>
+                                <dd class="text-3xl font-semibold text-gray-900">{{ $data['totalTasks'] }}</dd>
+                            </dl>
+                        </div>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Tasks</dt>
-                            <dd class="text-3xl font-semibold text-gray-900">{{ $totalTasks }}</dd>
-                        </dl>
+                </div>
+            </div>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Completed Tasks</dt>
+                                <dd class="text-3xl font-semibold text-gray-900">{{ $data['completedTasks'] }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Pending Tasks</dt>
+                                <dd class="text-3xl font-semibold text-gray-900">{{ $data['pendingTasks'] }}</dd>
+                            </dl>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Completed Tasks</dt>
-                            <dd class="text-3xl font-semibold text-gray-900">{{ $completedTasks }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Pending Tasks</dt>
-                            <dd class="text-3xl font-semibold text-gray-900">{{ $pendingTasks }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Chart Section -->
-    <div class="flex justify-center mb-6">
-        <div class="bg-white rounded-lg shadow p-6 w-full max-w-4xl">
-            <canvas id="taskChart" class="h-[400px] w-full"></canvas>
+        <!-- Chart Section -->
+        <div class="flex justify-center mb-6">
+            <div class="bg-white rounded-lg shadow p-6 w-full max-w-4xl">
+                <canvas id="taskChart" class="h-[400px] w-full"></canvas>
+            </div>
         </div>
-    </div>
 
-    <!-- Todo List Section -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Recent Tasks</h3>
-        </div>
-        <ul class="divide-y divide-gray-200">
-            @forelse($todos as $todo)
+        <!-- Todo List Section -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Recent Tasks</h3>
+            </div>
+            <ul class="divide-y divide-gray-200">
+                {{-- @forelse($todos as $todo)
                 <li class="p-6">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
@@ -117,13 +120,13 @@
                 <li class="p-6 text-center text-gray-500">
                     No tasks found. <a href="{{ route('todos.create') }}" class="text-indigo-600 hover:text-indigo-500">Create one?</a>
                 </li>
-            @endforelse
-        </ul>
+            @endforelse --}}
+            </ul>
+        </div>
     </div>
-</div>
 
-@push('scripts')
-<script>
+    @push('scripts')
+        {{-- <script>
     const ctx = document.getElementById('taskChart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
@@ -175,6 +178,6 @@
             }
         });
     }
-</script>
-@endpush
+</script> --}}
+    @endpush
 @endsection

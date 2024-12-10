@@ -20,6 +20,32 @@ class EloquentTodoRepository implements TodoRepository
             )
         )->toArray();
     }
+    public function findCompleted(): array
+    {
+        return TodoModel::where('isCompleted', true)->get()->map(fn($todo)=>new Todo(
+                $todo->id,
+                $todo->title,
+                $todo->description,
+                $todo->isCompleted,
+                $todo->image,
+                $todo->created_at,
+                $todo->updated_at
+            )
+        )->toArray();
+    }
+    public function findPending(): array
+    {
+        return TodoModel::where('isCompleted', false)->get()->map(fn($todo)=>new Todo(
+            $todo->id,
+            $todo->title,
+            $todo->description,
+            $todo->isCompleted,
+            $todo->image,
+            $todo->created_at,
+            $todo->updated_at
+        )
+    )->toArray();
+    }
 
     public function getById(int $id): Todo
     {

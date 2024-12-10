@@ -15,4 +15,12 @@ class RegisterTodo
     {
         return $this->todoRepository->getAll();
     }
+    public function findCompleted(): array
+    {
+        return $this->todoRepository->findCompleted();
+    }
+    public function findPending(): array
+    {
+        return $this->todoRepository->findPending();
+    }
 }
