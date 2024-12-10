@@ -12,17 +12,12 @@ use App\Http\Controllers\TodoController;
 |--------------------------------------------------------------------------
 */
 
-// Redirect root to login
-Route::get('/', function () {
-    return redirect()->route('login');
-});
-
 // Auth routes
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register.view');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register');
 });
 
 // Protected routes

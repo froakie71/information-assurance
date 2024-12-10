@@ -3,6 +3,7 @@
 namespace App\Application\Todo;
 use App\Domain\Todo\TodoRepository;
 
+
 class RegisterTodo
 {
     public function __construct(private TodoRepository $todoRepository)
@@ -10,8 +11,8 @@ class RegisterTodo
         $this->todoRepository = $todoRepository;
     }
 
-    public function findall(): void
+    public function findall(): array
     {
-        $this->todoRepository->getAll();
+        return $this->todoRepository->getAll();
     }
 }
