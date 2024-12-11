@@ -14,11 +14,10 @@ return new class extends Migration
         Schema::create('todos', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->longText('description')->nullable()->default('text');
+            $table->longText('description')->nullable();
             $table->boolean('isCompleted')->default(false);
             $table->string('image')->nullable();
-            $table->string('created_at')->nullable();
-            $table->string('updated_at')->nullable();
+            $table->timestamps();
         });
     }
 

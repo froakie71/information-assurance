@@ -13,7 +13,8 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Register ChartJS components
 ChartJS.register(
@@ -28,6 +29,8 @@ ChartJS.register(
 
 export default function Dashboard() {
   const [todos, setTodos] = useState([]);
+  const router = useRouter();
+  const { logout } = useAuth();
 
   // Sample data for the graph
   const data = {
@@ -64,6 +67,15 @@ export default function Dashboard() {
     },
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Navigation Bar */}
@@ -83,7 +95,7 @@ export default function Dashboard() {
                 Add New Todo
               </Link>
               <button
-                onClick={() => router.push('/auth/login')}
+                onClick={handleLogout}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 <svg className="h-5 w-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
