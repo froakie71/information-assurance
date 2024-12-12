@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Todo\API\TodoAPIController;
 use App\Http\Controllers\Auth\API\AuthAPIController;
+use App\Http\Controllers\Api\TodoController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -22,6 +23,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthAPIController::class, 'logout']);
     Route::get('/user', [AuthAPIController::class, 'user']);
 });
+
+Route::post('/todos', [TodoController::class, 'store']);
+
+Route::get('/todos', [TodoController::class, 'index']);
 
 // Route::get('/todos', [TodoController::class, 'index']);
 // Route::get('/todos/{id}', [TodoController::class, 'show']);
