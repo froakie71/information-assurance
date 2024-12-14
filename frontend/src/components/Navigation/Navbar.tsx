@@ -1,22 +1,27 @@
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useState } from 'react';
 
 export default function Navbar() {
   const router = useRouter();
-  const userName = "John Doe"; // Replace with actual user data
-
+  // const userName = "John Doe"; // Replace with actual user data
+  const [userName, setUserName] = useState('');
+  useEffect(() => {
+    setUserName(localStorage.getItem('name') || '');
+  }, []);
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <span className="text-xl font-semibold text-gray-800">
-              {userName}
+              {userName} enter
             </span>
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <Link 
+            <Link
               href="/dashboard/add-todo"
               className="p-2 rounded-full hover:bg-gray-100"
             >
@@ -34,7 +39,7 @@ export default function Navbar() {
                 />
               </svg>
             </Link>
-            
+
             <button
               onClick={() => router.push('/auth/login')}
               className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
