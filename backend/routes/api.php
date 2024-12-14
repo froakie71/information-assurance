@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/todos', [TodoController::class, 'store']);
 
-Route::get('/todos', [TodoController::class, 'index']);
+Route::get('/todos/{ownerId}', [TodoController::class, 'index']);
 
 Route::patch('/todos/{todo}/toggle', [TodoController::class, 'toggle']);
 Route::delete('/todos/{todo}', [TodoController::class, 'destroy']);

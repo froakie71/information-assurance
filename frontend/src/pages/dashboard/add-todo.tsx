@@ -4,7 +4,7 @@ import AddTodoForm from '../../components/Todo/AddTodoForm';
 
 export default function AddTodo() {
   const router = useRouter();
-  
+
   const handleSubmit = async (todoData: FormData) => {
     try {
       const response = await fetch('http://localhost:8000/api/todos', {
@@ -15,8 +15,11 @@ export default function AddTodo() {
         body: todoData,
         credentials: 'include'
       });
-      
+
+
       if (response.ok) {
+        const responseData = await response.json();
+        console.log(responseData);
         router.push('/dashboard');
       } else {
         const error = await response.json();

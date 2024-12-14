@@ -15,12 +15,15 @@ export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([]);
 
   useEffect(() => {
-    fetchTodos();
+    const id = localStorage.getItem('id');
+    console.log(id);
+
+    fetchTodos(id);
   }, []);
 
-  const fetchTodos = async () => {
+  const fetchTodos = async (id: any) => {
     try {
-      const response = await fetch('http://localhost:8000/api/todos', {
+      const response = await fetch(`http://localhost:8000/api/todos/${id}`, {
         credentials: 'include'
       });
       if (response.ok) {
@@ -45,7 +48,7 @@ export default function TodoList() {
       });
 
       if (response.ok) {
-        setTodos(todos.map(todo => 
+        setTodos(todos.map(todo =>
           todo.id === id ? { ...todo, is_completed: !todo.is_completed } : todo
         ));
       }
@@ -100,11 +103,10 @@ export default function TodoList() {
                     <div className="text-sm text-gray-500">
                       Due: {formatDate(todo.due_date)}
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      todo.priority === 'High' ? 'bg-red-100 text-red-800' :
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${todo.priority === 'High' ? 'bg-red-100 text-red-800' :
                       todo.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
+                        'bg-green-100 text-green-800'
+                      }`}>
                       {todo.priority} Priority
                     </div>
                   </div>
@@ -123,17 +125,17 @@ export default function TodoList() {
                     href={`/dashboard/edit-todo/${todo.id}`}
                     className="text-blue-600 hover:text-blue-800"
                   >
-                    <svg 
-                      className="w-5 h-5" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                       />
                     </svg>
                   </Link>

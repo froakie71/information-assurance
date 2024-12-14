@@ -38,7 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
     });
+
     localStorage.setItem('token', data.token);
+    localStorage.setItem('id', data?.user?.id);
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
     setUser(data.user);
   };
@@ -58,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     await axios.post('http://localhost:8000/api/logout');
     localStorage.removeItem('token');
+    localStorage.removeItem('id');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };

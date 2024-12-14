@@ -22,7 +22,7 @@ class EloquentTodoRepository implements TodoRepository
     }
     public function findCompleted(): array
     {
-        return TodoModel::where('isCompleted', true)->get()->map(fn($todo)=>new Todo(
+        return TodoModel::where('is_completed', true)->get()->map(fn($todo)=>new Todo(
                 $todo->id,
                 $todo->title,
                 $todo->description,
@@ -35,7 +35,7 @@ class EloquentTodoRepository implements TodoRepository
     }
     public function findPending(): array
     {
-        return TodoModel::where('isCompleted', false)->get()->map(fn($todo)=>new Todo(
+        return TodoModel::where('is_completed', false)->get()->map(fn($todo)=>new Todo(
             $todo->id,
             $todo->title,
             $todo->description,

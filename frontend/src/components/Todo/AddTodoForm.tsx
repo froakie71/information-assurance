@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 interface AddTodoFormProps {
@@ -8,6 +8,14 @@ interface AddTodoFormProps {
 export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
+  const [ownerId, setOwnerId] = useState<string>('');
+
+  useEffect(() => {
+    const id = localStorage.getItem('id');
+    if (id) {
+      setOwnerId(id);
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,6 +25,8 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
     }
     onSubmit(formData);
   };
+
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,34 +38,35 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
+      <input type="hidden" name="owner_id" value={ownerId || ''} />
       <div className="mb-4">
         <label className="block mb-2">Title</label>
         <input
           type="text"
           name="title"
-          required
+
           className="w-full p-2 border rounded"
           placeholder="Todo title"
         />
       </div>
-      
+
       <div className="mb-4">
         <label className="block mb-2">Description</label>
         <textarea
           name="description"
-          required
+
           className="w-full p-2 border rounded"
           placeholder="Describe your todo"
         />
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
           <label className="block mb-2">Due Date</label>
           <input
             type="date"
             name="dueDate"
-            required
+
             className="w-full p-2 border rounded"
           />
         </div>
@@ -68,7 +79,7 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
           </select>
         </div>
       </div>
-      
+
       <div className="mb-4">
         <label className="block mb-2">Attachment</label>
         <input
@@ -83,7 +94,7 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
           </div>
         )}
       </div>
-      
+
       <div className="flex justify-end gap-4">
         <button
           type="button"

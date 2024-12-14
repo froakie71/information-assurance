@@ -11,6 +11,7 @@ class TodoController extends Controller
 {
     public function store(Request $request)
     {
+        // return response()->json($request->all());
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -20,24 +21,25 @@ class TodoController extends Controller
         ]);
 
         $todo = new Todo();
+        $todo->owner_id = $request->owner_id;
         $todo->title = $request->title;
         $todo->description = $request->description;
         $todo->due_date = $request->dueDate;
         $todo->priority = $request->priority;
-        
+
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('todo-images', 'public');
             $todo->image = $path;
         }
-        
+
         $todo->save();
 
         return response()->json($todo, 201);
     }
 
-    public function index()
+    public function index(int $ownerId)
     {
-        $todos = Todo::orderBy('created_at', 'desc')->get();
+        $todos = Todo::where('owner_id', $ownerId)->orderBy('created_at', 'desc')->get();
         return response()->json($todos);
     }
 
@@ -45,7 +47,7 @@ class TodoController extends Controller
     {
         $todo->is_completed = !$todo->is_completed;
         $todo->save();
-        
+
         return response()->json($todo);
     }
 
@@ -87,4 +89,4 @@ class TodoController extends Controller
 
         return response()->json($todo);
     }
-} 
+}

@@ -11,6 +11,7 @@ return new class extends Migration
         if (!Schema::hasTable('todos')) {
             Schema::create('todos', function (Blueprint $table) {
                 $table->id();
+                $table->smallInteger('owner_id')->nullable();
                 $table->string('title');
                 $table->text('description');
                 $table->dateTime('due_date');
@@ -26,4 +27,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('todos');
     }
-}; 
+};
