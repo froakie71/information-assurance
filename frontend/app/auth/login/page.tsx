@@ -3,16 +3,21 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/hooks/useAuth';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
+    const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement login logic here
-        console.log('Login attempt with:', { email, password });
+        try {
+            await login({ email, password });
+        } catch (error) {
+            console.error('Login failed:', error);
+        }
     };
 
     return (
