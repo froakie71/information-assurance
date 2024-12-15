@@ -3,21 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Todo;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class TodoController extends Controller
 {
     public function store(Request $request)
     {
-        // return response()->json($request->all());
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'dueDate' => 'required|date',
             'priority' => 'required|string|in:Low,Medium,High',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|string',
+            'owner_id' => 'required'
         ]);
 
         $todo = new Todo();
@@ -27,9 +27,18 @@ class TodoController extends Controller
         $todo->due_date = $request->dueDate;
         $todo->priority = $request->priority;
 
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('todo-images', 'public');
-            $todo->image = $path;
+        if ($request->has('image') && !empty($request->image)) {
+            if (str_starts_with($request->image, 'data:image')) {
+                // Handle base64 image
+                $imageData = substr($request->image, strpos($request->image, ',') + 1);
+                $decodedImage = base64_decode($imageData);
+                $filename = 'todo-image-' . time() . '.jpg';
+                Storage::disk('public')->put('todo-images/' . $filename, $decodedImage);
+                $todo->image = 'todo-images/' . $filename;
+            } else {
+                // Handle regular image path
+                $todo->image = $request->image;
+            }
         }
 
         $todo->save();

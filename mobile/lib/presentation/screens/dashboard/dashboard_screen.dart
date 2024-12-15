@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../core/theme/app_theme.dart';
-import '../todos/add_todo_screen.dart';
-import '../auth/login_screen.dart';
+import '../../../features/todo/presentation/pages/add_todo_page.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -15,47 +13,24 @@ class DashboardScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 2,
         title: const Text(
-          'Todo Dashboard',
+          'Todo List',
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: ElevatedButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddTodoScreen(),
-                  ),
-                );
-                if (result != null) {
-                  // TODO: Handle the new todo data
-                  print('New todo: $result');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4F46E5),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Add New Todo'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddTodoPage(),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black54),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+          );
+        },
+        backgroundColor: const Color(0xFF4F46E5),
+        child: const Icon(Icons.add),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -310,4 +285,4 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}
