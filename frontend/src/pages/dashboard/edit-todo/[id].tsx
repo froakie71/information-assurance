@@ -28,7 +28,7 @@ export default function EditTodo() {
         setTodo({
           title: data.title,
           description: data.description,
-          due_date: data.due_date.split('T')[0], // Format date for input
+          due_date: data.due_date ? data.due_date.split('T')[0] : '', // Format date for input
           priority: data.priority,
           image: data.image
         });
