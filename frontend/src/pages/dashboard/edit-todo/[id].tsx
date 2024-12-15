@@ -1,20 +1,33 @@
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react'; // Importing useState and useEffect
+
+interface Todo {
+  title: string;
+  description: string;
+  due_date: string;
+  priority: string;
+  completed: boolean;
+  image: string | null;
+}
 
 export default function EditTodo() {
   const router = useRouter();
   const { id } = router.query;
-  const [todo, setTodo] = useState({
+  const [todo, setTodo] = useState<Todo>({
     title: '',
     description: '',
     due_date: '',
     priority: '',
-    image: null as string | null
+    completed: false, // Initialize completed property
+    image: null
   });
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [taskCounts, setTaskCounts] = useState({ total: 0, completed: 0, pending: 0 });
 
   useEffect(() => {
     if (id) {
       fetchTodo();
+      fetchTodos(); // Fetch all todos when the component mounts
     }
   }, [id]);
 
@@ -24,18 +37,54 @@ export default function EditTodo() {
         credentials: 'include'
       });
       if (response.ok) {
-        const data = await response.json();
+        const data: Todo = await response.json();
         setTodo({
           title: data.title,
           description: data.description,
           due_date: data.due_date ? data.due_date.split('T')[0] : '', // Format date for input
           priority: data.priority,
+          completed: data.completed, // Include completed property
           image: data.image
         });
       }
     } catch (error) {
       console.error('Error fetching todo:', error);
     }
+  };
+
+  const fetchTodos = async () => {
+    try {
+      const userId = localStorage.getItem('id');
+      if (!userId) {
+        console.error('No user ID found');
+        return;
+      }
+      const response = await fetch(`http://localhost:8000/api/todos/${userId}`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setTodos(data);
+          calculateTaskCounts(data);
+        } else {
+          console.error('Invalid todos data received:', data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+    }
+  };
+
+  const calculateTaskCounts = (todoList: Todo[]) => {
+    if (!Array.isArray(todoList)) {
+      console.error('Invalid todos data:', todoList);
+      return;
+    }
+    const total = todoList.length;
+    const completed = todoList.filter(todo => todo.completed).length;
+    const pending = total - completed;
+    setTaskCounts({ total, completed, pending });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,6 +109,15 @@ export default function EditTodo() {
   return (
     <div className="max-w-2xl mx-auto mt-8 p-4">
       <h1 className="text-2xl font-bold mb-6">Edit Todo</h1>
+      {todo.image && (
+        <div className="mb-4">
+          <img
+            src={todo.image}
+            alt="Todo Image"
+            className="w-full h-auto rounded-md"
+          />
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700">Title</label>
@@ -126,4 +184,4 @@ export default function EditTodo() {
       </form>
     </div>
   );
-} 
+}

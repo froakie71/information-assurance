@@ -13,6 +13,7 @@ interface Todo {
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [taskStats, setTaskStats] = useState({ total: 0, completed: 0, pending: 0 });
 
   useEffect(() => {
     const id = localStorage.getItem('id');
@@ -20,6 +21,13 @@ export default function TodoList() {
 
     fetchTodos(id);
   }, []);
+
+  const calculateTaskStats = (todoList: Todo[]) => {
+    const total = todoList.length;
+    const completed = todoList.filter(todo => todo.is_completed).length;
+    const pending = total - completed;
+    setTaskStats({ total, completed, pending });
+  };
 
   const fetchTodos = async (id: any) => {
     try {
@@ -29,6 +37,7 @@ export default function TodoList() {
       if (response.ok) {
         const data = await response.json();
         setTodos(data);
+        calculateTaskStats(data);
       }
     } catch (error) {
       console.error('Error fetching todos:', error);
@@ -51,6 +60,9 @@ export default function TodoList() {
         setTodos(todos.map(todo =>
           todo.id === id ? { ...todo, is_completed: !todo.is_completed } : todo
         ));
+        calculateTaskStats(todos.map(todo =>
+          todo.id === id ? { ...todo, is_completed: !todo.is_completed } : todo
+        ));
       }
     } catch (error) {
       console.error('Error updating todo:', error);
@@ -68,6 +80,7 @@ export default function TodoList() {
 
       if (response.ok) {
         setTodos(todos.filter(todo => todo.id !== id));
+        calculateTaskStats(todos.filter(todo => todo.id !== id));
       }
     } catch (error) {
       console.error('Error deleting todo:', error);
@@ -80,6 +93,20 @@ export default function TodoList() {
 
   return (
     <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-gray-500">Total Tasks</h3>
+          <p className="text-3xl font-bold">{taskStats.total}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-gray-500">Completed Tasks</h3>
+          <p className="text-3xl font-bold">{taskStats.completed}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-gray-500">Pending Tasks</h3>
+          <p className="text-3xl font-bold">{taskStats.pending}</p>
+        </div>
+      </div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Tasks</h2>
       <div className="space-y-6">
         {todos.map((todo) => (
@@ -155,4 +182,4 @@ export default function TodoList() {
       </div>
     </div>
   );
-} 
+}
