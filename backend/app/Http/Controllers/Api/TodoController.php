@@ -99,7 +99,7 @@ class TodoController extends Controller
             'description' => 'required|string',
             'due_date' => 'required|date',
             'priority' => 'required|string|in:Low,Medium,High',
-            'image' => 'nullable|string'
+            'image' => 'nullable|image|max:2048'
         ]);
 
         $todo->title = $request->title;
@@ -107,47 +107,16 @@ class TodoController extends Controller
         $todo->due_date = $request->due_date;
         $todo->priority = $request->priority;
 
-        if ($request->has('image') && !empty($request->image)) {
-            try {
-                if (str_starts_with($request->image, 'data:image')) {
-                    $image_parts = explode(";base64,", $request->image);
-                    $image_type_aux = explode("image/", $image_parts[0]);
-                    $image_type = $image_type_aux[1];
-                    $image_base64 = base64_decode($image_parts[1]);
-                    
-                    // Delete old image if exists
-                    if ($todo->image) {
-                        Storage::disk('public')->delete($todo->image);
-                    }
-                    
-                    $filename = 'todo-image-' . time() . '.' . $image_type;
-                    Storage::disk('public')->put('todo-images/' . $filename, $image_base64);
-                    
-                    // Get the full URL with protocol
-                    $baseUrl = request()->getSchemeAndHttpHost();
-                    $todo->image = str_replace(['http://', 'https://'], '//', "{$baseUrl}/storage/todo-images/{$filename}");
-                }
-            } catch (\Exception $e) {
-                \Log::error('Error processing image: ' . $e->getMessage());
-                return response()->json([
-                    'message' => 'Error processing image',
-                    'error' => $e->getMessage()
-                ], 422);
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($todo->image) {
+                Storage::disk('public')->delete($todo->image);
             }
+            $todo->image = $request->file('image')->store('todo-images', 'public');
         }
 
         $todo->save();
 
         return response()->json($todo);
-    }
-
-    public function completed($ownerId)
-    {
-        $completedTodos = Todo::where('owner_id', $ownerId)
-            ->where('completed', true)
-            ->orderBy('updated_at', 'desc')
-            ->get();
-        
-        return response()->json($completedTodos);
     }
 }
