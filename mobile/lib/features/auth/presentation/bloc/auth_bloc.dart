@@ -53,8 +53,6 @@ class AuthLoading extends AuthState {}
 
 class Authenticated extends AuthState {}
 
-class Registered extends AuthState {}
-
 class Unauthenticated extends AuthState {}
 
 class AuthError extends AuthState {
@@ -71,44 +69,56 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository repository;
 
   AuthBloc({required this.repository}) : super(AuthInitial()) {
-    on<CheckAuthStatus>((event, emit) async {
-      emit(AuthLoading());
-      try {
-        final isLoggedIn = await repository.isLoggedIn();
-        emit(isLoggedIn ? Authenticated() : Unauthenticated());
-      } catch (e) {
-        emit(AuthError(e.toString()));
-      }
-    });
+    on<CheckAuthStatus>(_onCheckAuthStatus);
+    on<Login>(_onLogin);
+    on<Register>(_onRegister);
+    on<Logout>(_onLogout);
+  }
 
-    on<Login>((event, emit) async {
-      emit(AuthLoading());
-      try {
-        await repository.login(event.email, event.password);
-        emit(Authenticated());
-      } catch (e) {
-        emit(AuthError(e.toString()));
-      }
-    });
+  void _onCheckAuthStatus(CheckAuthStatus event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final isAuthenticated = await repository.isAuthenticated();
+      emit(isAuthenticated ? Authenticated() : Unauthenticated());
+    } catch (e) {
+      print('AuthBloc: Check auth status failed - $e');
+      emit(Unauthenticated());
+    }
+  }
 
-    on<Register>((event, emit) async {
-      emit(AuthLoading());
-      try {
-        await repository.register(event.name, event.email, event.password);
-        emit(Registered());
-      } catch (e) {
-        emit(AuthError(e.toString()));
-      }
-    });
+  void _onLogin(Login event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      print('AuthBloc: Attempting login...');
+      await repository.login(event.email, event.password);
+      print('AuthBloc: Login successful');
+      emit(Authenticated());
+    } catch (e) {
+      print('AuthBloc: Login failed - $e');
+      emit(AuthError(e.toString()));
+    }
+  }
 
-    on<Logout>((event, emit) async {
-      emit(AuthLoading());
-      try {
-        await repository.logout();
-        emit(Unauthenticated());
-      } catch (e) {
-        emit(AuthError(e.toString()));
-      }
-    });
+  void _onRegister(Register event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      print('AuthBloc: Attempting registration...');
+      await repository.register(event.name, event.email, event.password);
+      print('AuthBloc: Registration successful');
+      emit(Authenticated());
+    } catch (e) {
+      print('AuthBloc: Registration failed - $e');
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  void _onLogout(Logout event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await repository.logout();
+      emit(Unauthenticated());
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
   }
 }

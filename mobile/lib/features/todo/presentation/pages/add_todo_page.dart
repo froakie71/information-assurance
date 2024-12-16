@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -7,9 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
-import '../../domain/entities/todo.dart';
 import '../bloc/todo_bloc.dart';
 import '../../data/models/todo_model.dart';
+import 'package:file_picker/file_picker.dart';
 
 class AddTodoPage extends StatefulWidget {
   const AddTodoPage({super.key});
@@ -25,42 +24,143 @@ class _AddTodoPageState extends State<AddTodoPage> {
   DateTime _dueDate = DateTime.now().add(const Duration(days: 1));
   String _priority = 'Medium';
   XFile? _selectedImage;
-  Uint8List? _imageBytes;
+  String? _base64Image;
+  bool _isLoading = false;
+  Uint8List? _webImage;
   final ImagePicker _imagePicker = ImagePicker();
 
   Future<void> _pickImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
-      );
-      
-      if (image != null) {
-        final bytes = await image.readAsBytes();
-        setState(() {
-          _selectedImage = image;
-          _imageBytes = bytes;
-        });
+      setState(() {
+        _isLoading = true;
+      });
+
+      if (kIsWeb) {
+        // Web-specific image picking
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          allowMultiple: false,
+        );
+
+        if (result != null && result.files.isNotEmpty) {
+          final file = result.files.first;
+          if (file.bytes != null) {
+            setState(() {
+              _webImage = file.bytes;
+              _base64Image = 'data:image/jpeg;base64,${base64Encode(file.bytes!)}';
+            });
+          }
+        }
+      } else {
+        // Mobile image picking
+        final ImagePicker picker = ImagePicker();
+        final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+        
+        if (image != null) {
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _selectedImage = image;
+            _base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+            _webImage = bytes;
+          });
+        }
       }
     } catch (e) {
+      print('Error picking image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking image: $e')),
+        SnackBar(content: Text('Failed to pick image: $e')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  Future<String?> _getImageData() async {
-    if (_imageBytes == null) return null;
-    try {
-      final base64String = base64Encode(_imageBytes!);
-      return 'data:image/jpeg;base64,$base64String';
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error processing image: $e')),
-      );
-      return null;
+  Widget _buildImagePreview() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_webImage != null) {
+      return kIsWeb
+          ? Image.memory(
+              _webImage!,
+              fit: BoxFit.cover,
+              height: 200,
+            )
+          : Image.memory(
+              _webImage!,
+              fit: BoxFit.cover,
+              height: 200,
+            );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.image_outlined,
+            size: 48,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add Image',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            'Optional',
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final todo = TodoModel(
+          id: 0, // The backend will assign the actual ID
+          title: _titleController.text,
+          description: _descriptionController.text,
+          dueDate: _dueDate,
+          priority: _priority,
+          image: _base64Image,
+          isCompleted: false,
+        );
+
+        context.read<TodoBloc>().add(AddTodo(todo));
+        
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        print('Error submitting form: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to create todo: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -166,108 +266,53 @@ class _AddTodoPageState extends State<AddTodoPage> {
               const SizedBox(height: 24),
               // Image Upload Section
               Container(
+                height: 200,
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: Colors.grey[300]!),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
-                  children: [
-                    InkWell(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 150,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
+                child: InkWell(
+                  onTap: _isLoading ? null : _pickImage,
+                  child: Stack(
+                    children: [
+                      _buildImagePreview(),
+                      if (_webImage != null)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              setState(() {
+                                _selectedImage = null;
+                                _webImage = null;
+                                _base64Image = null;
+                              });
+                            },
+                          ),
                         ),
-                        child: _selectedImage == null
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_photo_alternate_outlined,
-                                    size: 48,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Add Image',
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Optional',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : _imageBytes != null
-                                ? Image.memory(
-                                    _imageBytes!,
-                                    fit: BoxFit.cover,
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                      ),
-                    ),
-                    if (_selectedImage != null)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Selected Image'),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red),
-                              onPressed: () {
-                                setState(() {
-                                  _selectedImage = null;
-                                  _imageBytes = null;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    final imageData = await _getImageData();
-                    final todo = TodoModel(
-                      id: 0, // The backend will assign the actual ID
-                      title: _titleController.text,
-                      description: _descriptionController.text,
-                      dueDate: _dueDate,
-                      priority: _priority,
-                      image: imageData,
-                      isCompleted: false,
-                    );
-                    
-                    context.read<TodoBloc>().add(AddTodo(todo));
-                    Navigator.pop(context);
-                  }
-                },
+                onPressed: _isLoading ? null : _submitForm,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Add Todo',
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : const Text(
+                        'Add Todo',
+                        style: TextStyle(fontSize: 16),
+                      ),
               ),
             ],
           ),

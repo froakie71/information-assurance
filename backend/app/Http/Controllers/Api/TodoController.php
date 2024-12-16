@@ -11,39 +11,57 @@ class TodoController extends Controller
 {
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'dueDate' => 'required|date',
-            'priority' => 'required|string|in:Low,Medium,High',
-            'image' => 'nullable|string',
-            'owner_id' => 'required'
-        ]);
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'dueDate' => 'required|date',
+                'priority' => 'required|string|in:Low,Medium,High',
+                'image' => 'nullable|string',
+            ]);
 
-        $todo = new Todo();
-        $todo->owner_id = $request->owner_id;
-        $todo->title = $request->title;
-        $todo->description = $request->description;
-        $todo->due_date = $request->dueDate;
-        $todo->priority = $request->priority;
+            $todo = new Todo();
+            $todo->owner_id = auth()->id();
+            $todo->title = $request->title;
+            $todo->description = $request->description;
+            $todo->due_date = $request->dueDate;
+            $todo->priority = $request->priority;
+            $todo->is_completed = false;
 
-        if ($request->has('image') && !empty($request->image)) {
-            if (str_starts_with($request->image, 'data:image')) {
-                // Handle base64 image
-                $imageData = substr($request->image, strpos($request->image, ',') + 1);
-                $decodedImage = base64_decode($imageData);
-                $filename = 'todo-image-' . time() . '.jpg';
-                Storage::disk('public')->put('todo-images/' . $filename, $decodedImage);
-                $todo->image = 'todo-images/' . $filename;
-            } else {
-                // Handle regular image path
-                $todo->image = $request->image;
+            if ($request->has('image') && !empty($request->image)) {
+                try {
+                    if (str_starts_with($request->image, 'data:image')) {
+                        $image_parts = explode(";base64,", $request->image);
+                        $image_type_aux = explode("image/", $image_parts[0]);
+                        $image_type = $image_type_aux[1];
+                        $image_base64 = base64_decode($image_parts[1]);
+                        
+                        $filename = 'todo-image-' . time() . '.' . $image_type;
+                        Storage::disk('public')->put('todo-images/' . $filename, $image_base64);
+                        $todo->image = 'todo-images/' . $filename;
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error processing image: ' . $e->getMessage());
+                    return response()->json([
+                        'message' => 'Error processing image',
+                        'error' => $e->getMessage()
+                    ], 422);
+                }
             }
+
+            $todo->save();
+
+            return response()->json([
+                'message' => 'Todo created successfully',
+                'todo' => $todo
+            ], 201);
+        } catch (\Exception $e) {
+            \Log::error('Error creating todo: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error creating todo',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $todo->save();
-
-        return response()->json($todo, 201);
     }
 
     public function index(int $ownerId)

@@ -35,9 +35,12 @@ class _RegisterPageState extends State<RegisterPage> {
         listener: (context, state) {
           if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
             );
-          } else if (state is Registered) {
+          } else if (state is Authenticated) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => const LoginPage()),

@@ -75,62 +75,98 @@ class _TodoListPageState extends State<TodoListPage> {
   Widget _buildTodoCard(BuildContext context, Todo todo) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        leading: Checkbox(
-          value: todo.isCompleted,
-          onChanged: (bool? value) {
-            context.read<TodoBloc>().add(ToggleTodoComplete(todo.id));
-          },
-        ),
-        title: Text(
-          todo.title,
-          style: TextStyle(
-            decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(todo.description),
-            const SizedBox(height: 4),
-            Row(
+      child: Column(
+        children: [
+          if (todo.image != null && todo.image!.isNotEmpty)
+            Container(
+              height: 200,
+              width: double.infinity,
+              child: Image.network(
+                'http://localhost:54857/storage/${todo.image}',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Center(
+                    child: Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
+              ),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              ),
+            ),
+          ListTile(
+            leading: Checkbox(
+              value: todo.isCompleted,
+              onChanged: (bool? value) {
+                context.read<TodoBloc>().add(ToggleTodoComplete(todo.id));
+              },
+            ),
+            title: Text(
+              todo.title,
+              style: TextStyle(
+                decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
+              ),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.calendar_today, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  todo.dueDate.toString().split(' ')[0],
-                  style: const TextStyle(fontSize: 12),
+                Text(todo.description),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      todo.dueDate.toString().split(' ')[0],
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(width: 16),
+                    _buildPriorityChip(todo.priority),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                _buildPriorityChip(todo.priority),
               ],
             ),
-          ],
-        ),
-        trailing: PopupMenuButton(
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              child: ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Edit'),
-                onTap: () {
-                  // Navigate to edit page
-                  Navigator.pop(context);
-                },
-              ),
+            trailing: PopupMenuButton(
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  child: ListTile(
+                    leading: const Icon(Icons.edit),
+                    title: const Text('Edit'),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+                PopupMenuItem(
+                  child: ListTile(
+                    leading: const Icon(Icons.delete, color: Colors.red),
+                    title: const Text('Delete', style: TextStyle(color: Colors.red)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showDeleteConfirmation(context, todo);
+                    },
+                  ),
+                ),
+              ],
             ),
-            PopupMenuItem(
-              child: ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete', style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showDeleteConfirmation(context, todo);
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

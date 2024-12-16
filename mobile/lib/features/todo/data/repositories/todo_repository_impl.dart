@@ -94,25 +94,28 @@ class TodoRepositoryImpl implements TodoRepository {
         'is_completed': todo.isCompleted ? 1 : 0,
       };
 
-      if (todo.image?.isNotEmpty ?? false) {
+      if (todo.image != null && todo.image!.isNotEmpty) {
         todoData['image'] = todo.image;
       }
 
-      print('Sending todo data: ${json.encode(todoData)}'); // Debug log
-
       final response = await client.post(
         Uri.parse('$baseUrl/todos'),
-        headers: headers,
+        headers: {
+          'Authorization': headers['Authorization']!,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
         body: json.encode(todoData),
       );
 
-      print('Response status: ${response.statusCode}'); // Debug log
-      print('Response body: ${response.body}'); // Debug log
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode != 201) {
         throw Exception('Failed to create todo: ${response.body}');
       }
     } catch (e) {
+      print('Error creating todo: $e');
       throw Exception('Failed to create todo: $e');
     }
   }

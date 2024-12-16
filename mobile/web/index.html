@@ -19,11 +19,12 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
-  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';">
+
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="mobile">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
@@ -31,8 +32,53 @@
 
   <title>mobile</title>
   <link rel="manifest" href="manifest.json">
+  <meta http-equiv="Content-Security-Policy" 
+        content="default-src * 'self' data: gap: https: ws: wss: 'unsafe-eval' 'unsafe-inline';
+                 script-src * 'self' data: blob: 'unsafe-eval' 'unsafe-inline';
+                 style-src * 'self' 'unsafe-inline';
+                 img-src * 'self' data: blob: http: https: 'unsafe-inline';
+                 font-src * 'self' data: https://fonts.gstatic.com;
+                 connect-src * 'self' ws: wss:;">
+
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    const serviceWorkerVersion = null;
+  </script>
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter.js" defer></script>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    window.addEventListener('load', function(ev) {
+      // Initialize Flutter loader
+      _flutter = {
+        loader: {
+          load: function() {
+            return new Promise(function(resolve, reject) {
+              const script = document.createElement('script');
+              script.src = 'main.dart.js';
+              script.type = 'application/javascript';
+              script.addEventListener('load', function() {
+                resolve(true);
+              });
+              script.addEventListener('error', function(e) {
+                reject(e);
+              });
+              document.body.appendChild(script);
+            });
+          }
+        }
+      };
+      
+      // Load the app
+      _flutter.loader.load()
+        .then(function() {
+          console.log('Flutter web app loaded successfully');
+        })
+        .catch(function(err) {
+          console.error('Error loading Flutter web app:', err);
+        });
+    });
+  </script>
 </body>
 </html>
