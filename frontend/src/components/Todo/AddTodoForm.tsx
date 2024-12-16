@@ -8,25 +8,28 @@ interface AddTodoFormProps {
 export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
-  const [ownerId, setOwnerId] = useState<string>('');
+  const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
 
-  useEffect(() => {
-    const id = localStorage.getItem('id');
-    if (id) {
-      setOwnerId(id);
-    }
-  }, []);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData();
+    
+    const form = e.currentTarget;
+    const title = (form.querySelector('[name="title"]') as HTMLInputElement).value;
+    const description = (form.querySelector('[name="description"]') as HTMLTextAreaElement).value;
+    const priority = (form.querySelector('[name="priority"]') as HTMLSelectElement).value;
+    
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('due_date', dueDate);
+    formData.append('priority', priority || 'Medium');
+    
     if (image) {
       formData.append('image', image);
     }
+    
     onSubmit(formData);
   };
-
-
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -36,15 +39,18 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
     }
   };
 
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDueDate(e.target.value);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
-      <input type="hidden" name="owner_id" value={ownerId || ''} />
       <div className="mb-4">
         <label className="block mb-2">Title</label>
         <input
           type="text"
           name="title"
-
+          required
           className="w-full p-2 border rounded"
           placeholder="Todo title"
         />
@@ -54,7 +60,7 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
         <label className="block mb-2">Description</label>
         <textarea
           name="description"
-
+          required
           className="w-full p-2 border rounded"
           placeholder="Describe your todo"
         />
@@ -65,14 +71,21 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
           <label className="block mb-2">Due Date</label>
           <input
             type="date"
-            name="dueDate"
-
+            name="due_date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            required
             className="w-full p-2 border rounded"
           />
         </div>
         <div>
           <label className="block mb-2">Priority</label>
-          <select name="priority" className="w-full p-2 border rounded">
+          <select 
+            name="priority" 
+            required
+            defaultValue="Medium"
+            className="w-full p-2 border rounded"
+          >
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
@@ -84,6 +97,7 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
         <label className="block mb-2">Attachment</label>
         <input
           type="file"
+          name="image"
           onChange={handleImageChange}
           accept="image/*"
           className="w-full p-2 border rounded"
