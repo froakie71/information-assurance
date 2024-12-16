@@ -171,6 +171,7 @@ class _TodoListPageState extends State<TodoListPage> {
                     title: const Text('Edit'),
                     onTap: () {
                       Navigator.pop(context);
+                      _handleEdit(context, todo);
                     },
                   ),
                 ),
@@ -246,5 +247,17 @@ class _TodoListPageState extends State<TodoListPage> {
         context.read<TodoBloc>().add(DeleteTodo(todo.id));
       }
     }
+  }
+
+  void _handleEdit(BuildContext context, Todo todo) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddTodoPage(todoToEdit: todo),
+      ),
+    ).then((_) {
+      // Reload todos when returning from edit page
+      context.read<TodoBloc>().add(LoadTodos());
+    });
   }
 }

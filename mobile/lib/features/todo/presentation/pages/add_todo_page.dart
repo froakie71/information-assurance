@@ -5,13 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile/features/todo/domain/entities/todo.dart';
 import 'dart:convert';
 import '../bloc/todo_bloc.dart';
 import '../../data/models/todo_model.dart';
 import 'package:file_picker/file_picker.dart';
 
 class AddTodoPage extends StatefulWidget {
-  const AddTodoPage({super.key});
+  final Todo? todoToEdit;
+  const AddTodoPage({super.key, this.todoToEdit});
 
   @override
   State<AddTodoPage> createState() => _AddTodoPageState();
@@ -133,25 +135,46 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
       try {
         final todo = TodoModel(
-          id: 0, // The backend will assign the actual ID
+          id: widget.todoToEdit?.id ?? 0,
           title: _titleController.text,
           description: _descriptionController.text,
           dueDate: _dueDate,
           priority: _priority,
           image: _base64Image,
-          isCompleted: false,
+          isCompleted: widget.todoToEdit?.isCompleted ?? false,
         );
 
-        context.read<TodoBloc>().add(AddTodo(todo));
-        
-        if (mounted) {
-          Navigator.pop(context);
+        if (widget.todoToEdit != null) {
+          context.read<TodoBloc>().add(UpdateTodo(todo));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Todo updated successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pop(context);
+          }
+        } else {
+          context.read<TodoBloc>().add(AddTodo(todo));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Todo added successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pop(context);
+          }
         }
       } catch (e) {
         print('Error submitting form: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to create todo: $e')),
+            SnackBar(
+              content: Text('Failed to ${widget.todoToEdit != null ? 'update' : 'create'} todo: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
@@ -172,10 +195,29 @@ class _AddTodoPageState extends State<AddTodoPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.todoToEdit != null) {
+      _titleController.text = widget.todoToEdit!.title;
+      _descriptionController.text = widget.todoToEdit!.description;
+      _dueDate = widget.todoToEdit!.dueDate;
+      _priority = widget.todoToEdit!.priority;
+      if (widget.todoToEdit!.image != null) {
+        _base64Image = widget.todoToEdit!.image;
+        // Convert base64 to Uint8List for preview
+        if (_base64Image != null && _base64Image!.contains('base64,')) {
+          final base64Str = _base64Image!.split('base64,')[1];
+          _webImage = base64Decode(base64Str);
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Todo'),
+        title: Text(widget.todoToEdit != null ? 'Edit Todo' : 'Add New Todo'),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
       body: SingleChildScrollView(
@@ -309,9 +351,9 @@ class _AddTodoPageState extends State<AddTodoPage> {
                     ? const CircularProgressIndicator(
                         color: Colors.white,
                       )
-                    : const Text(
-                        'Add Todo',
-                        style: TextStyle(fontSize: 16),
+                    : Text(
+                        widget.todoToEdit != null ? 'Update Todo' : 'Add Todo',
+                        style: const TextStyle(fontSize: 16),
                       ),
               ),
             ],

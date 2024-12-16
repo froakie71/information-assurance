@@ -124,18 +124,40 @@ class TodoRepositoryImpl implements TodoRepository {
   Future<void> updateTodo(Todo todo) async {
     try {
       final headers = await _getHeaders();
-      final todoModel = todo as TodoModel;
-      
-      final response = await client.put(
+      final userId = await _getUserId();
+      if (userId == null) throw Exception('User not authenticated');
+
+      Map<String, dynamic> todoData = {
+        'owner_id': userId,
+        'title': todo.title,
+        'description': todo.description,
+        'due_date': todo.dueDate.toIso8601String(),
+        'priority': todo.priority,
+        'is_completed': todo.isCompleted ? 1 : 0,
+      };
+
+      if (todo.image != null && todo.image!.isNotEmpty) {
+        todoData['image'] = todo.image;
+      }
+
+      final response = await client.patch(
         Uri.parse('$baseUrl/todos/${todo.id}'),
-        headers: headers,
-        body: json.encode(todoModel.toJson()),
+        headers: {
+          'Authorization': headers['Authorization']!,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(todoData),
       );
 
+      print('Update Response status: ${response.statusCode}');
+      print('Update Response body: ${response.body}');
+
       if (response.statusCode != 200) {
-        throw Exception('Failed to update todo');
+        throw Exception('Failed to update todo: ${response.body}');
       }
     } catch (e) {
+      print('Error updating todo: $e');
       throw Exception('Failed to update todo: $e');
     }
   }

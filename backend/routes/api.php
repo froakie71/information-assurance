@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/todos/{todo}/toggle', [TodoController::class, 'toggle']);
     Route::delete('/todos/{todo}', [TodoController::class, 'destroy']);
     Route::get('/todos/{todo}', [TodoController::class, 'show']);
-    Route::post('/todos/{todo}', [TodoController::class, 'update']);
+    Route::patch('/todos/{todo}', [TodoController::class, 'update']);
 });
 
 Route::post('/register', [AuthAPIController::class, 'register']);

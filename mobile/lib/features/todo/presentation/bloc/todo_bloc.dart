@@ -71,6 +71,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
     on<UpdateTodo>((event, emit) async {
       try {
+        emit(TodoLoading());
         await repository.updateTodo(event.todo);
         final todos = await repository.getTodos();
         emit(TodosLoaded(todos));
