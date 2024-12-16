@@ -140,4 +140,14 @@ class TodoController extends Controller
 
         return response()->json($todo);
     }
+
+    public function completed($ownerId)
+    {
+        $completedTodos = Todo::where('owner_id', $ownerId)
+            ->where('completed', true)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+        
+        return response()->json($completedTodos);
+    }
 }
