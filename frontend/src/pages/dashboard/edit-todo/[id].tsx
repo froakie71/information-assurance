@@ -33,17 +33,30 @@ export default function EditTodo() {
 
   const fetchTodo = async () => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        router.push('/login');
+        return;
+      }
+
       const response = await fetch(`http://localhost:8000/api/todos/${id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
         credentials: 'include'
       });
+
       if (response.ok) {
         const data: Todo = await response.json();
         setTodo({
           title: data.title,
           description: data.description,
-          due_date: data.due_date ? data.due_date.split('T')[0] : '', // Format date for input
+          due_date: data.due_date ? data.due_date.split('T')[0] : '',
           priority: data.priority,
-          completed: data.completed, // Include completed property
+          completed: data.completed,
           image: data.image
         });
       }
@@ -55,13 +68,21 @@ export default function EditTodo() {
   const fetchTodos = async () => {
     try {
       const userId = localStorage.getItem('id');
-      if (!userId) {
-        console.error('No user ID found');
+      const token = localStorage.getItem('token');
+      
+      if (!userId || !token) {
+        console.error('No user ID or token found');
         return;
       }
+      
       const response = await fetch(`http://localhost:8000/api/todos/${userId}`, {
-        credentials: 'include'
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
       });
+      
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data)) {
@@ -89,18 +110,48 @@ export default function EditTodo() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.error('No token found');
+      router.push('/login');
+      return;
+    }
 
     try {
+      // Create a new FormData object
+      const formData = new FormData();
+      
+      // Add form fields manually to ensure proper naming
+      formData.append('title', (form.querySelector('[name="title"]') as HTMLInputElement).value);
+      formData.append('description', (form.querySelector('[name="description"]') as HTMLTextAreaElement).value);
+      formData.append('due_date', (form.querySelector('[name="due_date"]') as HTMLInputElement).value);
+      formData.append('priority', (form.querySelector('[name="priority"]') as HTMLSelectElement).value);
+      
+      // If there's an image, append it
+      if (todo.image) {
+        formData.append('image', todo.image);
+      }
+
+      // Add _method field to simulate PATCH request
+      formData.append('_method', 'PATCH');
+
       const response = await fetch(`http://localhost:8000/api/todos/${id}`, {
-        method: 'POST',
-        credentials: 'include',
+        method: 'POST', // Using POST with _method: PATCH for Laravel
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
         body: formData
       });
 
-      if (response.ok) {
-        router.push('/dashboard');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update todo');
       }
+
+      router.push('/dashboard');
     } catch (error) {
       console.error('Error updating todo:', error);
     }
