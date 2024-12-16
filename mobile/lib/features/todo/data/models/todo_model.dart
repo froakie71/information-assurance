@@ -30,10 +30,8 @@ class TodoModel extends Todo {
       description: json['description'],
       dueDate: DateTime.parse(json['due_date']),
       priority: json['priority'],
-      isCompleted: json['is_completed'] == 1,
       image: json['image'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      isCompleted: json['is_completed'] == true || json['is_completed'] == 1,
     );
   }
 

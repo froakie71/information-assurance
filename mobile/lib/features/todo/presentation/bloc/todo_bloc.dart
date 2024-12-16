@@ -100,10 +100,25 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
     on<ToggleTodoComplete>((event, emit) async {
       try {
+        // Keep the current state if it's TodosLoaded
+        final currentState = state;
+        emit(TodoLoading());
+        
         await repository.toggleTodoComplete(event.id);
         final todos = await repository.getTodos();
+        
+        // Emit new state with updated todos
         emit(TodosLoaded(todos));
+        
+        // Show the current stats in debug
+        if (state is TodosLoaded) {
+          final loadedState = state as TodosLoaded;
+          print('Total Tasks: ${loadedState.totalTasks}');
+          print('Completed Tasks: ${loadedState.completedTasks}');
+          print('Pending Tasks: ${loadedState.pendingTasks}');
+        }
       } catch (e) {
+        print('Error in ToggleTodoComplete: $e');
         emit(TodoError(e.toString()));
       }
     });

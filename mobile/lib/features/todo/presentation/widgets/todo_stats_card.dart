@@ -17,30 +17,11 @@ class TodoStatsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Expanded(
-            child: _buildStatCard(
-              'Total Tasks',
-              totalTasks,
-              Colors.blue,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildStatCard(
-              'Completed',
-              completedTasks,
-              Colors.green,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildStatCard(
-              'Pending',
-              pendingTasks,
-              Colors.orange,
-            ),
-          ),
+          _buildStatCard('Total Tasks', totalTasks, Colors.blue),
+          _buildStatCard('Completed', completedTasks, Colors.green),
+          _buildStatCard('Pending', pendingTasks, Colors.orange),
         ],
       ),
     );
@@ -48,26 +29,25 @@ class TodoStatsCard extends StatelessWidget {
 
   Widget _buildStatCard(String title, int count, Color color) {
     return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      elevation: 2,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
+                color: Colors.grey[600],
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               count.toString(),
               style: TextStyle(
+                color: color,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: color,
               ),
             ),
           ],

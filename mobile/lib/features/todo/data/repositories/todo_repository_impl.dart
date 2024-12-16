@@ -63,17 +63,28 @@ class TodoRepositoryImpl implements TodoRepository {
   Future<Todo> getTodoById(int id) async {
     try {
       final headers = await _getHeaders();
+      final userId = await _getUserId();
+      if (userId == null) throw Exception('User not authenticated');
+
       final response = await client.get(
-        Uri.parse('$baseUrl/todos/$id'),
+        Uri.parse('$baseUrl/todos/single/$id'),
         headers: headers,
       );
 
       if (response.statusCode == 200) {
-        return TodoModel.fromJson(json.decode(response.body));
+        final dynamic jsonData = json.decode(response.body);
+        if (jsonData is List) {
+          if (jsonData.isEmpty) {
+            throw Exception('Todo not found');
+          }
+          return TodoModel.fromJson(jsonData[0]);
+        }
+        return TodoModel.fromJson(jsonData);
       } else {
         throw Exception('Failed to load todo');
       }
     } catch (e) {
+      print('Error in getTodoById: $e');
       throw Exception('Failed to load todo: $e');
     }
   }
@@ -186,19 +197,32 @@ class TodoRepositoryImpl implements TodoRepository {
   @override
   Future<void> toggleTodoComplete(int id) async {
     try {
-      final todo = await getTodoById(id);
-      final updatedTodo = TodoModel(
-        id: todo.id,
-        title: todo.title,
-        description: todo.description,
-        dueDate: todo.dueDate,
-        priority: todo.priority,
-        isCompleted: !todo.isCompleted,
-        image: todo.image,
+      final headers = await _getHeaders();
+      final userId = await _getUserId();
+      if (userId == null) throw Exception('User not authenticated');
+      
+      final Map<String, dynamic> todoData = {
+        'owner_id': userId,
+        'is_completed': true  // The backend will toggle this value
+      };
+
+      final response = await client.patch(
+        Uri.parse('$baseUrl/todos/$id/toggle'),
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(todoData),
       );
 
-      await updateTodo(updatedTodo);
+      print('Toggle Response status: ${response.statusCode}');
+      print('Toggle Response body: ${response.body}');
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to toggle todo completion: ${response.body}');
+      }
     } catch (e) {
+      print('Error toggling todo completion: $e');
       throw Exception('Failed to toggle todo completion: $e');
     }
   }
