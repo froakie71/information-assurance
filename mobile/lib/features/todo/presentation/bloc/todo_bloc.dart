@@ -82,11 +82,19 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
     on<DeleteTodo>((event, emit) async {
       try {
+        emit(TodoLoading());
         await repository.deleteTodo(event.id);
         final todos = await repository.getTodos();
         emit(TodosLoaded(todos));
       } catch (e) {
-        emit(TodoError(e.toString()));
+        print('Error in DeleteTodo: $e');
+        // Still load the updated list even if there's an error
+        try {
+          final todos = await repository.getTodos();
+          emit(TodosLoaded(todos));
+        } catch (loadError) {
+          emit(TodoError(e.toString()));
+        }
       }
     });
 

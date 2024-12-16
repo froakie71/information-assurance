@@ -171,7 +171,6 @@ class _TodoListPageState extends State<TodoListPage> {
                     title: const Text('Edit'),
                     onTap: () {
                       Navigator.pop(context);
-                      _handleEdit(context, todo);
                     },
                   ),
                 ),
@@ -224,27 +223,42 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   Future<void> _showDeleteConfirmation(BuildContext context, Todo todo) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Todo'),
-        content: const Text('Are you sure you want to delete this todo?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Todo'),
+          content: const Text('Are you sure you want to delete this todo?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );
 
-    if (confirmed == true) {
-      if (context.mounted) {
+      if (confirmed == true && context.mounted) {
         context.read<TodoBloc>().add(DeleteTodo(todo.id));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Todo deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting todo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

@@ -171,10 +171,14 @@ class TodoRepositoryImpl implements TodoRepository {
         headers: headers,
       );
 
+      print('Delete Response status: ${response.statusCode}');
+      print('Delete Response body: ${response.body}');
+
       if (response.statusCode != 200) {
-        throw Exception('Failed to delete todo');
+        throw Exception('Failed to delete todo: ${response.body}');
       }
     } catch (e) {
+      print('Error deleting todo: $e');
       throw Exception('Failed to delete todo: $e');
     }
   }
