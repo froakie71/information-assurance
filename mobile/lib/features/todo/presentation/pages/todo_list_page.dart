@@ -6,6 +6,7 @@ import '../bloc/todo_bloc.dart';
 import '../widgets/todo_stats_card.dart';
 import '../../domain/entities/todo.dart';
 import 'add_todo_page.dart';
+import 'todo_history_page.dart';
 
 class TodoListPage extends StatefulWidget {
   const TodoListPage({Key? key}) : super(key: key);
@@ -26,6 +27,19 @@ class _TodoListPageState extends State<TodoListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Todo List'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TodoHistoryPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
