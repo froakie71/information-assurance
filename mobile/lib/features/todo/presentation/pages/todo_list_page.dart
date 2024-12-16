@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../bloc/todo_bloc.dart';
 import '../widgets/todo_stats_card.dart';
 import '../../domain/entities/todo.dart';
 import 'add_todo_page.dart';
 import 'todo_history_page.dart';
+import 'package:mobile/features/auth/presentation/pages/login_page.dart';
 
 class TodoListPage extends StatefulWidget {
   const TodoListPage({Key? key}) : super(key: key);
@@ -38,6 +40,10 @@ class _TodoListPageState extends State<TodoListPage> {
                 ),
               );
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => _showLogoutConfirmation(context),
           ),
         ],
       ),
@@ -185,6 +191,15 @@ class _TodoListPageState extends State<TodoListPage> {
                     title: const Text('Edit'),
                     onTap: () {
                       Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddTodoPage(todoToEdit: todo),
+                        ),
+                      ).then((_) {
+                        // Reload todos when returning from edit page
+                        context.read<TodoBloc>().add(LoadTodos());
+                      });
                     },
                   ),
                 ),
@@ -287,5 +302,42 @@ class _TodoListPageState extends State<TodoListPage> {
       // Reload todos when returning from edit page
       context.read<TodoBloc>().add(LoadTodos());
     });
+  }
+
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear(); // Clear all stored data
+                
+                if (context.mounted) {
+                  // Navigate to login and remove all previous routes
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (route) => false,
+                  );
+                }
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
