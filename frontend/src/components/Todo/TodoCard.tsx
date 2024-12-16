@@ -24,9 +24,13 @@ export default function TodoCard({ todo, onToggle, onDelete }: Props) {
       <div className="flex items-start gap-4">
         {todo.image && (
           <img
-            src={`http://localhost:8000/storage/${todo.image}`}
+            src={todo.image.replace('//', 'http://')}
             alt="Todo attachment"
             className="w-24 h-24 object-cover rounded-lg shadow-sm"
+            onError={(e) => {
+              console.error('Error loading image:', todo.image);
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
           />
         )}
         <div className="flex-1">

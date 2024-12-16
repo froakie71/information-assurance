@@ -6,7 +6,7 @@ interface AddTodoFormProps {
 }
 
 export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
-  const [image, setImage] = useState<File | null>(null);
+  const [image, setImage] = useState<string | null>(null);
   const [preview, setPreview] = useState<string>('');
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -15,14 +15,10 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
     const formData = new FormData();
     
     const form = e.currentTarget;
-    const title = (form.querySelector('[name="title"]') as HTMLInputElement).value;
-    const description = (form.querySelector('[name="description"]') as HTMLTextAreaElement).value;
-    const priority = (form.querySelector('[name="priority"]') as HTMLSelectElement).value;
-    
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('due_date', dueDate);
-    formData.append('priority', priority || 'Medium');
+    formData.append('title', (form.querySelector('[name="title"]') as HTMLInputElement).value);
+    formData.append('description', (form.querySelector('[name="description"]') as HTMLTextAreaElement).value);
+    formData.append('dueDate', dueDate);
+    formData.append('priority', (form.querySelector('[name="priority"]') as HTMLSelectElement).value);
     
     if (image) {
       formData.append('image', image);
@@ -31,11 +27,16 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
     onSubmit(formData);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setImage(base64String);
+        setPreview(base64String);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -44,7 +45,7 @@ export default function AddTodoForm({ onSubmit }: AddTodoFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
+    <form onSubmit={handleSubmit} className="max-w-lg mx-auto" encType="multipart/form-data">
       <div className="mb-4">
         <label className="block mb-2">Title</label>
         <input

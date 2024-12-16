@@ -26,44 +26,14 @@ export default function AddTodo() {
         return;
       }
 
-      // Log the received form data
-      console.log('Received form data:', {
-        title: todoData.get('title'),
-        description: todoData.get('description'),
-        dueDate: todoData.get('due_date'),
-        priority: todoData.get('priority')
-      });
-
-      // Create todo data
-      const createTodoData = {
-        title: todoData.get('title'),
-        description: todoData.get('description'),
-        dueDate: new Date(todoData.get('due_date') as string).toISOString().split('T')[0],
-        priority: todoData.get('priority'),
-        user_id: userId,
-        image: todoData.get('image') || null
-      };
-
-      // Additional validation
-      if (!createTodoData.dueDate) {
-        setError('Due date is required');
-        return;
-      }
-
-      console.log('Image data being sent:', 
-        typeof createTodoData.image === 'string' 
-          ? createTodoData.image.substring(0, 50) + '...' 
-          : 'No image'
-      );
+      todoData.append('user_id', userId);
 
       const response = await fetch('http://localhost:8000/api/todos', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
-        body: JSON.stringify(createTodoData)
+        body: todoData
       });
 
       const responseData = await response.json();
