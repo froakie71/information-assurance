@@ -8,7 +8,7 @@ import 'features/todo/presentation/bloc/todo_bloc.dart';
 import 'features/todo/presentation/pages/todo_list_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   if (kIsWeb) {
@@ -17,7 +17,7 @@ Future<void> main() async {
   }
   
   await di.init();
-  
+
   runApp(MultiBlocProvider(
     providers: [
       BlocProvider<AuthBloc>(

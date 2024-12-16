@@ -33,12 +33,10 @@
   <title>mobile</title>
   <link rel="manifest" href="manifest.json">
   <meta http-equiv="Content-Security-Policy" 
-        content="default-src * 'self' data: gap: https: ws: wss: 'unsafe-eval' 'unsafe-inline';
-                 script-src * 'self' data: blob: 'unsafe-eval' 'unsafe-inline';
-                 style-src * 'self' 'unsafe-inline';
-                 img-src * 'self' data: blob: http: https: 'unsafe-inline';
-                 font-src * 'self' data: https://fonts.gstatic.com;
-                 connect-src * 'self' ws: wss:;">
+        content="default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data: blob: 'unsafe-inline';">
+  <meta http-equiv="Access-Control-Allow-Origin" content="*">
+  <meta http-equiv="Access-Control-Allow-Methods" content="GET, POST, OPTIONS">
+  <meta http-equiv="Access-Control-Allow-Headers" content="Origin, X-Requested-With, Content-Type, Accept">
 
   <script>
     // The value below is injected by flutter build, do not touch.
@@ -46,6 +44,7 @@
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
+  <script src="web_security_config.js" defer></script>
 </head>
 <body>
   <script>

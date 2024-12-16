@@ -38,7 +38,10 @@ class TodoController extends Controller
                         
                         $filename = 'todo-image-' . time() . '.' . $image_type;
                         Storage::disk('public')->put('todo-images/' . $filename, $image_base64);
-                        $todo->image = 'todo-images/' . $filename;
+                        
+                        // Get the full URL with protocol
+                        $baseUrl = request()->getSchemeAndHttpHost();
+                        $todo->image = str_replace(['http://', 'https://'], '//', "{$baseUrl}/storage/todo-images/{$filename}");
                     }
                 } catch (\Exception $e) {
                     \Log::error('Error processing image: ' . $e->getMessage());

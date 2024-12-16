@@ -18,6 +18,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> login(String email, String password) async {
     try {
+      print('Attempting login to: $baseUrl/login');
       final response = await client.post(
         Uri.parse('$baseUrl/login'),
         headers: _headers,
@@ -27,15 +28,19 @@ class AuthRepositoryImpl implements AuthRepository {
         }),
       );
 
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_tokenKey, data['token']);
         await prefs.setString('id', data['user']['id'].toString());
       } else {
-        throw Exception('Invalid credentials');
+        throw Exception('Login failed with status code: ${response.statusCode}');
       }
     } catch (e) {
+      print('Login error: $e');
       throw Exception('Failed to login: $e');
     }
   }
