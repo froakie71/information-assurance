@@ -4,23 +4,26 @@ namespace Domain\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
 use Domain\Admin\Models\AdminUser;
-use Domain\Admin\Repositories\AdminUserRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AdminAuthController extends Controller
 {
-    private $adminUserRepository;
-
-    public function __construct(AdminUserRepository $adminUserRepository)
+    public function showLoginForm()
     {
-        $this->adminUserRepository = $adminUserRepository;
+        return view('admin.auth.login');
     }
 
-    public function register(Request $request): JsonResponse
+    public function showRegistrationForm()
+    {
+        return view('admin.auth.register');
+    }
+
+    public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -29,19 +32,31 @@ class AdminAuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        $admin = $this->adminUserRepository->create($request->all());
-        $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
+        $admin = AdminUser::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
 
-        return response()->json([
-            'admin' => $admin,
-            'token' => $token
-        ], 201);
+        Auth::guard('admin')->login($admin);
+
+        if ($request->wantsJson()) {
+            $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
+            return response()->json([
+                'admin' => $admin,
+                'token' => $token
+            ], 201);
+        }
+
+        return redirect()->route('admin.dashboard');
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
@@ -49,28 +64,53 @@ class AdminAuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            if ($request->wantsJson()) {
+                return response()->json($validator->errors(), 422);
+            }
+            return back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        $admin = $this->adminUserRepository->findByEmail($request->email);
+        $credentials = $request->only('email', 'password');
 
-        if (!$admin || !Hash::check($request->password, $admin->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        if (Auth::guard('admin')->attempt($credentials)) {
+            $request->session()->regenerate();
+
+            if ($request->wantsJson()) {
+                $admin = Auth::guard('admin')->user();
+                $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
+                return response()->json([
+                    'admin' => $admin,
+                    'token' => $token
+                ]);
+            }
+
+            return redirect()->intended(route('admin.dashboard'));
         }
 
-        $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
-
-        return response()->json([
-            'admin' => $admin,
-            'token' => $token
-        ]);
+        $error = ['email' => ['The provided credentials are incorrect.']];
+        
+        if ($request->wantsJson()) {
+            throw ValidationException::withMessages($error);
+        }
+        
+        return back()
+            ->withErrors($error)
+            ->withInput();
     }
 
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request)
     {
-        $request->user('admin')->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out successfully']);
+        Auth::guard('admin')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Logged out successfully']);
+        }
+
+        return redirect()->route('admin.login');
     }
 } 
