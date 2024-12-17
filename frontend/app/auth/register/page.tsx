@@ -12,14 +12,17 @@ export default function RegisterPage() {
     password_confirmation: '',
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     if (formData.password !== formData.password_confirmation) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
 
@@ -30,28 +33,40 @@ export default function RegisterPage() {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          password_confirmation: formData.password_confirmation
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.errors) {
-          const errorMessages = Object.values(data.errors).flat();
-          setError(errorMessages.join(', '));
-        } else {
-          setError(data.message || 'Registration failed');
-        }
-        return;
+        throw new Error(data.message || 'Registration failed');
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      router.push('/dashboard');
-    } catch (err) {
+      // Store user data in localStorage
+      if (data.user && data.token) {
+        // Clear form data
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          password_confirmation: '',
+        });
+        
+        // Redirect to login page instead of dashboard
+        router.replace('/auth/login');
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (err: any) {
       console.error('Registration error:', err);
-      setError('An error occurred during registration');
+      setError(err.message || 'An error occurred during registration');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -150,9 +165,10 @@ export default function RegisterPage() {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isLoading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
             >
-              Create Account
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </div>
         </form>
