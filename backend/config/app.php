@@ -123,4 +123,13 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+     * Package Service Providers...
+     */
+    Domain\Admin\Providers\AdminServiceProvider::class,
+
+    /*
+     * Application Service Providers...
+     */
+
 ];
