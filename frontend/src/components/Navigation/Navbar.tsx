@@ -10,6 +10,13 @@ export default function Navbar() {
   useEffect(() => {
     setUserName(localStorage.getItem('name') || '');
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('id');
+    router.push('/login');
+  };
+
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,6 +45,13 @@ export default function Navbar() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
+            </Link>
+
+            <Link
+              href="/history"
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 rounded-md hover:bg-gray-100"
+            >
+              History
             </Link>
 
             <button
