@@ -18,18 +18,19 @@ class AuthAPIController extends Controller
             'password' => 'required'
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $user = Auth::user();
-            $token = $user->createToken('auth-token')->plainTextToken;
+        $user = User::where('email', $request->email)->first();
 
-            return response()->json([
-                'token' => $token,
-                'user' => $user
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => ['The provided credentials are incorrect.'],
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'user' => $user
         ]);
     }
 

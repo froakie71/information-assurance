@@ -18,19 +18,18 @@ Route::options('{any}', function() {
         ->header('Access-Control-Allow-Origin', '*');
 })->where('any', '.*');
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Regular User Authentication Routes (for Next.js and Flutter)
+Route::post('/register', [AuthAPIController::class, 'register']);
+Route::post('/login', [AuthAPIController::class, 'login']);
 
-Route::get('/test',function(){
-    return response()->json(['message' => 'Hello, World!']);
-});
-
+// Protected Regular User Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthAPIController::class, 'logout']);
     Route::get('/user', [AuthAPIController::class, 'user']);
     Route::get('/auth/user', [AuthController::class, 'user']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    
+    // Todo Routes for Regular Users
     Route::get('/todos', [TodoAPIController::class, 'findall']);
     Route::get('/todos/{ownerId}', [TodoController::class, 'index']);
     Route::post('/todos', [TodoController::class, 'store']);
@@ -41,11 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/todos/{ownerId}/completed', [TodoController::class, 'completed']);
 });
 
-// Redirect all registrations to admin registration
-Route::post('/register', [AdminAuthController::class, 'register']);
-Route::post('/login', [AdminAuthController::class, 'login']);
-
-// Admin Auth Routes
+// Admin Routes
 Route::prefix('admin')->group(function () {
     Route::post('/register', [AdminAuthController::class, 'register']);
     Route::post('/login', [AdminAuthController::class, 'login']);
