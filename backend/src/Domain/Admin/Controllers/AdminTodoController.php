@@ -3,87 +3,75 @@
 namespace Domain\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
-use Domain\Admin\Repositories\AdminTodoRepositoryInterface;
-use Illuminate\Http\JsonResponse;
+use Domain\Admin\Models\AdminTodo;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AdminTodoController extends Controller
 {
-    public function __construct(
-        private AdminTodoRepositoryInterface $adminTodoRepository
-    ) {}
-
-    public function index(Request $request): JsonResponse
+    public function index()
     {
-        $perPage = $request->get('per_page', 10);
-        $todos = $this->adminTodoRepository->getAllPaginated($perPage);
-        return response()->json($todos);
+        $todos = AdminTodo::with('admin')
+            ->latest()
+            ->paginate(10);
+
+        return view('admin.todos.index', compact('todos'));
     }
 
-    public function store(Request $request): JsonResponse
+    public function create()
     {
-        $validator = Validator::make($request->all(), [
+        return view('admin.todos.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
+            'due_date' => 'required|date',
             'status' => 'required|in:pending,completed'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+        $todo = new AdminTodo();
+        $todo->admin_user_id = Auth::guard('admin')->id();
+        $todo->title = $request->title;
+        $todo->description = $request->description;
+        $todo->due_date = $request->due_date;
+        $todo->status = $request->status;
+        $todo->save();
 
-        $data = $request->all();
-        $data['admin_user_id'] = $request->user('admin')->id;
-        
-        $todo = $this->adminTodoRepository->create($data);
-        return response()->json($todo, 201);
+        return redirect()
+            ->route('admin.todos.index')
+            ->with('success', 'Todo created successfully');
     }
 
-    public function show(int $id): JsonResponse
+    public function edit(AdminTodo $todo)
     {
-        $todo = $this->adminTodoRepository->findById($id);
-        
-        if (!$todo) {
-            return response()->json(['message' => 'Todo not found'], 404);
-        }
-
-        return response()->json($todo);
+        return view('admin.todos.edit', compact('todo'));
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    public function update(Request $request, AdminTodo $todo)
     {
-        $todo = $this->adminTodoRepository->findById($id);
-        
-        if (!$todo) {
-            return response()->json(['message' => 'Todo not found'], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
+        $request->validate([
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'status' => 'sometimes|required|in:pending,completed'
+            'due_date' => 'required|date',
+            'status' => 'required|in:pending,completed'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+        $todo->update($request->all());
 
-        $todo = $this->adminTodoRepository->update($todo, $request->all());
-        return response()->json($todo);
+        return redirect()
+            ->route('admin.todos.index')
+            ->with('success', 'Todo updated successfully');
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(AdminTodo $todo)
     {
-        $todo = $this->adminTodoRepository->findById($id);
-        
-        if (!$todo) {
-            return response()->json(['message' => 'Todo not found'], 404);
-        }
+        $todo->delete();
 
-        $this->adminTodoRepository->delete($todo);
-        return response()->json(['message' => 'Todo deleted successfully']);
+        return redirect()
+            ->route('admin.todos.index')
+            ->with('success', 'Todo deleted successfully');
     }
 } 
